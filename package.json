@@ -8,7 +8,7 @@
     "build": "esbuild ./src/main.ts --bundle --platform=node --outfile=lib/index.js"
   },
   "bin": {
-    "file-plz": "./lib/index.js"
+    "file-plz": "lib/index.js"
   },
   "repository": {
     "type": "git",
