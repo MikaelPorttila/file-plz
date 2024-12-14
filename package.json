@@ -4,7 +4,11 @@
   "description": "Maker of files",
   "main": "./src/main.ts",
   "scripts": {
-    "start": "pnpm tsx ./src/main.ts"
+    "start": "pnpm tsx ./src/main.ts",
+    "build": "esbuild ./src/main.ts --bundle --platform=node --outfile=lib/index.js"
+  },
+  "bin": {
+    "file-plz": "./lib/index.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +33,11 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/yargs": "^17.0.33",
+    "esbuild": "^0.24.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=22.7.0"
   }
 }
