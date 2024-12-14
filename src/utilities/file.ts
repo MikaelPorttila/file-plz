@@ -1,4 +1,5 @@
-import { createWriteStream } from 'fs';
+import { randomUUID } from "crypto";
+import { join } from "path";
 
 export function getParsedFileSizeInBytes(sizeStr: string): number {
     const units: Record<string, number> = {
@@ -17,43 +18,20 @@ export function getParsedFileSizeInBytes(sizeStr: string): number {
     return value * (units[unit] || 1);
 };
 
-export function generateTextFile(filePath: string, sizeInBytes: number): void {
-    const chunkSize = 64 * 1024;
-    const chunk = 'A'.repeat(chunkSize);
-    const stream = createWriteStream(filePath, { flags: 'w' });
-
-    let bytesWritten = 0;
-
-    const writeChunks = () => {
-        while (bytesWritten < sizeInBytes) {
-            const remaining = sizeInBytes - bytesWritten;
-            const sizeToWrite = Math.min(remaining, chunkSize);
-            const canContinue = stream.write(chunk.slice(0, sizeToWrite));
-            bytesWritten += sizeToWrite;
-
-            if (!canContinue) {
-                stream.once('drain', writeChunks);
-                return;
-            }
-        }
-
-        stream.end();
+export function normalizeFileType(fileType: string): string {
+    if (fileType.startsWith('.')) {
+        return fileType.toLocaleLowerCase();
     }
 
-    writeChunks();
+    return '.' + fileType.toLocaleLowerCase();
 }
 
-export type FileGenerator = (path: string, sizeInBytes: number) => void;
-export function getFileGeneratorByFileType(fileType: string): FileGenerator {
-    let generator: FileGenerator;
+export function getTempFileName(fileType: string): string {
+    const fileName = `${randomUUID().replaceAll('-', '')}${fileType}`;
+    return fileName;
+}
 
-    switch (fileType) {
-        case '.txt':
-            generator = generateTextFile;
-            break;
-        default:
-            throw new Error("File type is not supported");
-    }
-
-    return generator;
+export function getTempFilePath(dir: string, fileType: string): string {
+    const filePath = join(dir, getTempFileName(fileType));
+    return filePath;
 }
