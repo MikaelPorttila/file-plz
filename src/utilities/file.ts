@@ -18,20 +18,18 @@ export function getParsedFileSizeInBytes(sizeStr: string): number {
     return value * (units[unit] || 1);
 };
 
-export function normalizeFileType(fileType: string): string {
-    if (fileType.startsWith('.')) {
-        return fileType.toLocaleLowerCase();
-    }
-
-    return '.' + fileType.toLocaleLowerCase();
+export function normalizeFormat(format: string): string {
+    return format.startsWith('.')
+        ? format.substring(1).toLocaleLowerCase()
+        : format.toLocaleLowerCase();
 }
 
-export function getTempFileName(fileType: string): string {
-    const fileName = `${randomUUID().replaceAll('-', '')}${fileType}`;
+export function getTempFileName(format: string): string {
+    const fileName = `${randomUUID().replaceAll('-', '')}.${format}`;
     return fileName;
 }
 
-export function getTempFilePath(dir: string, fileType: string): string {
-    const filePath = join(dir, getTempFileName(fileType));
+export function getTempFilePath(dir: string, format: string): string {
+    const filePath = join(dir, getTempFileName(format));
     return filePath;
 }

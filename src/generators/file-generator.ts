@@ -1,22 +1,18 @@
+import type { FileGenerator } from "../types/file-gen-details";
 import { generateArchive } from "./archive-generator";
+/* import { generatePdfFile } from "./pdf-generator"; */
 import { generateTextFile } from "./text-generator";
 
-export type FileGeneratorDetails = {
-    fullFilePath: string;
-    directory: string;
-    sizeInBytes: number;
-}
-
-export type FileGenerator = (parameters: FileGeneratorDetails) => Promise<void>;
-
-export function getFileGeneratorByFileType(fileType: string): FileGenerator {
-    switch (fileType) {
-        case '.txt':
+export function getFileGeneratorByFormat(format: string): FileGenerator {
+    switch (format) {
+        case 'txt':
             return generateTextFile;
-        case '.rar':
-        case '.zip':
+        /* case 'pdf':
+            return generatePdfFile; */
+        case 'tar':
+        case 'zip':
             return generateArchive;
         default:
-            throw new Error("File type is not supported");
+            throw new Error(`Format "${format}" is not supported`);
     }
 }

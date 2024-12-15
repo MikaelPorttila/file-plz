@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 
-import { FileGenerator, FileGeneratorDetails, getFileGeneratorByFileType } from "./generators/file-generator";
+import type { FileGenerator, FileGeneratorDetails } from "./types/file-gen-details";
+import { getFileGeneratorByFormat } from "./generators/file-generator";
 import { getArguments } from "./utilities/cmd";
-import { getParsedFileSizeInBytes, getTempFilePath, normalizeFileType } from "./utilities/file";
+import { getParsedFileSizeInBytes, getTempFilePath, normalizeFormat } from "./utilities/file";
 
 (async () => {
     const args = await getArguments();
     const workingDirectory = process.cwd();
     const fileSizeInBytes = getParsedFileSizeInBytes(args.size);
-    const fileType = normalizeFileType(args.type);
+    const format = normalizeFormat(args.type);
 
-    const generateFile: FileGenerator = getFileGeneratorByFileType(fileType);
+    const generateFile: FileGenerator = getFileGeneratorByFormat(format);
     for (let i = 0; i < args.number; i++) {
         const parameter: FileGeneratorDetails = {
             sizeInBytes: fileSizeInBytes,
             directory: workingDirectory,
-            fullFilePath: getTempFilePath(workingDirectory, fileType)
+            fullFilePath: getTempFilePath(workingDirectory, format),
+            format: format
         };
 
         await generateFile(parameter);
