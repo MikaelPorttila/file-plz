@@ -1,10 +1,10 @@
 {
   "name": "file-plz",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Maker of files",
   "main": "./src/main.ts",
   "scripts": {
-    "start": "pnpm tsx ./src/main.ts -s 4MB -t txt",
+    "start": "pnpm tsx ./src/main.ts -s 30mb -t jpg",
     "build": "esbuild ./src/main.ts --bundle --platform=node --outfile=lib/index.js"
   },
   "bin": {
@@ -29,6 +29,7 @@
   "homepage": "https://github.com/MikaelPorttila/file-plz#readme",
   "dependencies": {
     "archiver": "^7.0.1",
+    "jimp": "^1.6.0",
     "pdf-lib": "^1.17.1",
     "yargs": "^17.7.2"
   },
