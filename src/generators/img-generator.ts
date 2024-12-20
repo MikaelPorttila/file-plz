@@ -2,6 +2,9 @@ import { statSync } from "fs";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
+    const sampleSize = 10;
+    const maxDelta = 0.0006;
+
     return new Promise(async (resolve, reject) => {
         const { Jimp, rgbaToInt } = await import('jimp');
         const applyNoise = (image: any): void => {
@@ -21,57 +24,94 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
             }
         }
 
-        let width = 100;
-        let height = 100;
+        let width = 10;
+        let height = 10;
+        let reuseBuffer = false;
+        let tries = 0;
+        let samples = [];    
+        let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
+        let modifier = 0;
+        let alter = false;
 
-        let mb = 1024 * 1024;
-
-        // Skips: 100MB, 10MB, 1MB 
-        if (parameters.sizeInBytes >= (mb * 100)) {
-            width = 5640;
-            height = 5640;
-        }
-        else if (parameters.sizeInBytes >= (mb * 10)) {
-            width = 1800;
-            height = 1800;
-        }
-        else if (parameters.sizeInBytes >= mb) {
-            width = 864;
-            height = 864;
-        } 
-
-        let img = null;
-        const maxDelta = 0.2;
-
+        let grow = true;
+       
         while (true) {
             try {
-                if (!img) {
-                    img = new Jimp({ height, width, color: 0xff0000ff });
-                } else {
+                // upscale or crop image
+                if (!reuseBuffer) {
                     img.resize({ w: width, h: height });
+                    applyNoise(img);
+                } else {
+                    img.crop({x: 0, y: 0, w: width, h: height});
                 }
-
-                applyNoise(img);
                 
+                // Store file and grab metadata 
                 await img.write(parameters.fullFilePath as any);
                 const stats = statSync(parameters.fullFilePath);
                 const fileSizeInBytes = stats.size;
 
-                const diff = Math.abs(fileSizeInBytes - parameters.sizeInBytes) / parameters.sizeInBytes;
+                // Control diffs
+                const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
+                const diff = sizeDiffInBytes / parameters.sizeInBytes;
                 if (diff <= maxDelta) {
                     resolve();
                     return;
                 }
 
-                if (fileSizeInBytes > parameters.sizeInBytes) {
-                    const modifier = 0.9;
-                    width = Math.floor(width * modifier);
-                    height = Math.floor(height * modifier);
+                // Modify image size
+                const isLargerThanTargetSize = fileSizeInBytes > parameters.sizeInBytes;
+                reuseBuffer = isLargerThanTargetSize;
+
+                if (isLargerThanTargetSize) {
+                    samples.push(fileSizeInBytes);
+                }
+                
+                if (isLargerThanTargetSize) {
+
+                    if (grow) {
+                        grow = false;
+                        samples = []; // reset sampling
+                    }
+
+                    // default: remove two pixels
+                    let pixelsOfWidthToRemove = 2;
+
+                    const latestSamples = samples.slice(-(sampleSize));
+                    if (latestSamples.length === sampleSize) {
+                        let zeroCostPixels = 0;
+                        let totalBytes = 0;
+                        for (let index = 1; index < latestSamples.length; index++) {
+                            const cost = latestSamples[index - 1] - latestSamples[index];
+                            if (cost === 0) {
+                                zeroCostPixels++;
+                            }
+                            totalBytes += cost;
+                        }
+
+                        // Note: Should samplesSize by - 1 during the calc?
+                        const avgBytesPerPixel = totalBytes / sampleSize; 
+                        const numberOfPixelsNeededToBeRemoved = avgBytesPerPixel > 0 ? Math.floor((sizeDiffInBytes / avgBytesPerPixel) * 0.6) : 1;
+                        pixelsOfWidthToRemove = numberOfPixelsNeededToBeRemoved;
+                        console.log('Shrink', { diff, width, height, tries });
+                    } else {
+                        console.log('Shrink - sampling');
+                    }
+                    
+                    if (alter) {
+                        width -= pixelsOfWidthToRemove;
+                    } else {
+                        height -= pixelsOfWidthToRemove;
+                    }
+                    alter = !alter;
                 } else {
-                    const modifier = 1.1;
-                    width = Math.floor(width * modifier);
+                    grow = true;
+                    console.log('Grow', { diff, width, height, tries });
+                    modifier = isLargerThanTargetSize ? 0.9 : 1.2;
+                    width = Math.floor(width * modifier);   
                     height = Math.floor(height * modifier);
                 }
+
+                tries++;
             } catch (error) {
                 console.error('Error while generating bitmap');
                 reject();

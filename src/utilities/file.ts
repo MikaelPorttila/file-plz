@@ -3,12 +3,13 @@ import { join } from "path";
 
 export function getParsedFileSizeInBytes(sizeStr: string): number {
     const units: Record<string, number> = {
+        'B': 1,
         'KB': 1024,
         'MB': 1024 * 1024,
         'GB': 1024 * 1024 * 1024
     };
 
-    const match = sizeStr.match(/^(\d+)([KMGT]B)?$/i);
+    const match = sizeStr.match(/^(\d+)([KMGT]?B)?$/i);
     if (!match) {
         throw new Error('Invalid size format. Use format like 10KB, 5MB');
     }

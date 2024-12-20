@@ -10,7 +10,6 @@ export async function generateTextFile(parameters: FileGeneratorDetails): Promis
         stream.on("close", () => resolve());
 
         let bytesWritten = 0;
-
         const writeChunks = () => {
             while (bytesWritten < parameters.sizeInBytes) {
                 const remaining = parameters.sizeInBytes - bytesWritten;
