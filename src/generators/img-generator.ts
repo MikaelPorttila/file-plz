@@ -3,7 +3,7 @@ import type { FileGeneratorDetails } from "../types/file-gen-details";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
     const sampleSize = 10;
-    const maxDelta = 0.0006;
+    
 
     return new Promise(async (resolve, reject) => {
         const { Jimp, rgbaToInt } = await import('jimp');
@@ -31,6 +31,11 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
         let samples = [];    
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
         let grow = true;
+
+        let maxDelta = 0.0006;
+        if (parameters.sizeInBytes >= 1024 * 1024) {
+            maxDelta = 0.00008;
+        }
        
         while (true) {
             try {
@@ -51,6 +56,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
                 const diff = sizeDiffInBytes / parameters.sizeInBytes;
                 if (diff <= maxDelta) {
+                    console.log('Completed', { diff, maxDelta, width, height, tries });
                     resolve();
                     return;
                 }
@@ -89,7 +95,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         const avgBytesPerPixel = totalBytes / sampleSize; 
                         const numberOfPixelsNeededToBeRemoved = avgBytesPerPixel > 0 ? Math.floor((sizeDiffInBytes / avgBytesPerPixel) * 0.6) : 1;
                         pixelsOfWidthToRemove = numberOfPixelsNeededToBeRemoved;
-                        console.log('Shrink', { diff, width, height, tries });
+                        console.log('Shrink', { diff, maxDelta, width, height, tries });
                     } else {
                         console.log('Shrink - sampling');
                     }
@@ -103,7 +109,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
                     const dimensionScaleFactor = Math.sqrt(factor);
                     grow = true;
-                    console.log('Grow', { diff, width, height, tries, dimensionScaleFactor });
+                    console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
 
                     const newWidth  = Math.floor(width * dimensionScaleFactor);
                     const newHeight = Math.floor(height * dimensionScaleFactor);
