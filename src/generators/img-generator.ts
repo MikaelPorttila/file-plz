@@ -104,11 +104,16 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     }
                     alter = !alter;
                 } else {
+                    const factor = parameters.sizeInBytes / fileSizeInBytes;
+                    const dimensionScaleFactor = Math.sqrt(factor);
                     grow = true;
-                    console.log('Grow', { diff, width, height, tries });
-                    modifier = isLargerThanTargetSize ? 0.9 : 1.2;
-                    width = Math.floor(width * modifier);   
-                    height = Math.floor(height * modifier);
+                    console.log('Grow', { diff, width, height, tries, dimensionScaleFactor });
+
+                    const newWidth  = Math.floor(width * dimensionScaleFactor);
+                    const newHeight = Math.floor(height * dimensionScaleFactor);
+
+                    width = width === newWidth ? width + 1 : newWidth;   
+                    height = height === newHeight ? height + 1 : newHeight;
                 }
 
                 tries++;
