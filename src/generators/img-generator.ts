@@ -24,15 +24,12 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
             }
         }
 
-        let width = 10;
+        let width = 40;
         let height = 10;
         let reuseBuffer = false;
         let tries = 0;
         let samples = [];    
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
-        let modifier = 0;
-        let alter = false;
-
         let grow = true;
        
         while (true) {
@@ -96,13 +93,12 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     } else {
                         console.log('Shrink - sampling');
                     }
-                    
-                    if (alter) {
+
+                    if (width > height) {
                         width -= pixelsOfWidthToRemove;
                     } else {
                         height -= pixelsOfWidthToRemove;
                     }
-                    alter = !alter;
                 } else {
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
                     const dimensionScaleFactor = Math.sqrt(factor);
