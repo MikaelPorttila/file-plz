@@ -1,8 +1,8 @@
 import type { FileGenerator } from "../types/file-gen-details";
-import { generateArchive } from "./archive-generator";
-import { generateImageFile } from "./img-generator";
+import { generateArchive } from "./archive-gen";
+import { generateImageFile } from "./img-gen";
 /* import { generatePdfFile } from "./pdf-generator"; */
-import { generateTextFile } from "./text-generator";
+import { generateTextFile } from "./text-gen";
 
 export function getFileGeneratorByFormat(format: string): FileGenerator {
     switch (format) {

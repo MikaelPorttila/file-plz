@@ -27,6 +27,13 @@ export function getArguments() {
             type: 'string',
             describe: 'Custom filename (optional)'
         })
+        .option('debug', {
+            alias: 'd',
+            type: 'boolean',
+            describe: 'Output debug info (optional)',
+            default: false,
+            boolean: true
+        })
         .help('h')
         .alias('h', 'help')
         .argv;

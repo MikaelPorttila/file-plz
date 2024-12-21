@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import type { FileGenerator, FileGeneratorDetails } from "./types/file-gen-details";
-import { getFileGeneratorByFormat } from "./generators/file-generator";
+import type { FileGenerator } from "./types/file-gen-details";
+import { getFileGeneratorByFormat } from "./gen/file-gen";
 import { getArguments } from "./utilities/cmd";
 import { getParsedFileSizeInBytes, getTempFilePath, normalizeFormat } from "./utilities/file";
 import { copyFile } from "fs/promises";
 
 (async () => {
-    const mainTimer = 'main timer';
-    console.time(mainTimer);
     const args = await getArguments();
+    const mainTimer = `${args.number > 1 ? args.number + ' files' : '1 file'} was created in`;
+    console.time(mainTimer);
     const workingDirectory = process.cwd();
     const fileSizeInBytes = getParsedFileSizeInBytes(args.size);
     const format = normalizeFormat(args.type);
@@ -20,7 +20,8 @@ import { copyFile } from "fs/promises";
         sizeInBytes: fileSizeInBytes,
         directory: workingDirectory,
         fullFilePath: filePath,
-        format: format
+        format: format,
+        debug: args.debug
     });
 
     for (let i = 1; i < args.number; i++) { 
@@ -28,5 +29,4 @@ import { copyFile } from "fs/promises";
     }
 
     console.timeEnd(mainTimer);
-    console.log(`${args.number > 1 ? args.number + ' files' : '1 file'} was created`);
 })();

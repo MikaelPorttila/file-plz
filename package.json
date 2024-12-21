@@ -1,10 +1,10 @@
 {
   "name": "file-plz",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Maker of files",
   "main": "./src/main.ts",
   "scripts": {
-    "start": "pnpm tsx ./src/main.ts -s 3mb -t png",
+    "start": "pnpm tsx ./src/main.ts -s 3mb -t png -d",
     "build": "esbuild ./src/main.ts --bundle --platform=node --outfile=lib/index.js"
   },
   "bin": {

@@ -1,6 +1,6 @@
 import { createWriteStream, unlinkSync } from "fs";
 import { getTempFilePath } from "../utilities/file";
-import { generateTextFile } from "./text-generator";
+import { generateTextFile } from "./text-gen";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
 
 export async function generateArchive(parameters: FileGeneratorDetails): Promise<void> {

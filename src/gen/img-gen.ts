@@ -56,7 +56,9 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
                 const diff = sizeDiffInBytes / parameters.sizeInBytes;
                 if (diff <= maxDelta) {
-                    console.log('Completed', { diff, maxDelta, width, height, tries });
+                    if (parameters.debug) {
+                        console.log('Completed', { diff, maxDelta, width, height, tries });
+                    }
                     resolve();
                     return;
                 }
@@ -94,11 +96,17 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         const avgBytesPerPixel = totalBytes / sampleSize; 
                         const numberOfPixelsNeededToBeRemoved = avgBytesPerPixel > 0 ? Math.floor((sizeDiffInBytes / avgBytesPerPixel) * 0.6) : 1;
                         pixelsOfWidthToRemove = numberOfPixelsNeededToBeRemoved;
-                        console.log('Shrink', { diff, maxDelta, width, height, tries });
+                        if (parameters.debug) {
+                            console.log('Shrink', { diff, maxDelta, width, height, tries });
+                        }
                     } else {
-                        console.log('Shrink - sampling', { diff, maxDelta, width, height, tries });
+                        if (parameters.debug) {
+                            console.log('Shrink - sampling', { diff, maxDelta, width, height, tries });
+                        }
                     }
 
+                    // Note: Crop from the side which impact the least number of pixels
+                    // to prevent major size jumps.
                     if (width > height) {
                         width -= pixelsOfWidthToRemove;
                     } else {
@@ -108,11 +116,13 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
                     const dimensionScaleFactor = Math.sqrt(factor);
                     grow = true;
-                    console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
+                    
+                    if (parameters.debug) {
+                        console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
+                    }
 
                     const newWidth  = Math.floor(width * dimensionScaleFactor);
                     const newHeight = Math.floor(height * dimensionScaleFactor);
-
                     width = width === newWidth ? width + 1 : newWidth;   
                     height = height === newHeight ? height + 1 : newHeight;
                 }
