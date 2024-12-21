@@ -1,12 +1,13 @@
 import { randomUUID } from "crypto";
 import { join } from "path";
+import { B, GB, KB, MB } from "../const/file-sizes";
 
 export function getParsedFileSizeInBytes(sizeStr: string): number {
     const units: Record<string, number> = {
-        'B': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024
+        'B': B,
+        'KB': KB,
+        'MB': MB,
+        'GB': GB
     };
 
     const match = sizeStr.match(/^(\d+)([KMGT]?B)?$/i);

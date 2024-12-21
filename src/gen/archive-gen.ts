@@ -2,6 +2,7 @@ import { createWriteStream, unlinkSync } from "fs";
 import { getTempFilePath } from "../utilities/file";
 import { generateTextFile } from "./text-gen";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
+import { KB } from "../const/file-sizes";
 
 export async function generateArchive(parameters: FileGeneratorDetails): Promise<void> {
     const archiver = await import('archiver'); 
@@ -17,7 +18,7 @@ export async function generateArchive(parameters: FileGeneratorDetails): Promise
     await generateTextFile({
         directory: parameters.directory,
         fullFilePath: tempFile,
-        sizeInBytes: parameters.sizeInBytes - 1024, /* 1 KB of archive header data */
+        sizeInBytes: parameters.sizeInBytes - KB, /* 1 KB of archive header data */
         format: 'txt'
     });
     

@@ -2,6 +2,7 @@ import { statSync } from "fs";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
 import { getAvgFactorForTargetSize } from "../utilities/sampling";
 import { CircleBuffer } from "../utilities/circle-buffer";
+import { KB } from "../const/file-sizes";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -31,11 +32,8 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
         let grow = true;
 
-        let kb = 1024;
-        let mb = kb * 1024;
-
         let maxDelta = 0.0006;
-        if (parameters.sizeInBytes >= kb) {
+        if (parameters.sizeInBytes >= KB) {
             maxDelta = 0.00008;
         }
 
