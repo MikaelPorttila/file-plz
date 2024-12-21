@@ -22,7 +22,7 @@ export async function generateArchive(parameters: FileGeneratorDetails): Promise
     });
     
     archive.pipe(stream);
-    archive.file(tempFile, { name: 'random_content.txt' });
+    archive.file(tempFile, { name: 'pad.txt' });
     await archive.finalize();
 
     unlinkSync(tempFile);

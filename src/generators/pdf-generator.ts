@@ -18,7 +18,7 @@ export async function generatePdfFile(parameters: FileGeneratorDetails): Promise
             const page = doc.addPage();
             const text = generateRandomText(contentLength);
 
-            //page.drawImage(...generated img...)
+            //TODO: page.drawImage(...generated img...)
 
             page.drawText(text, {
                 x: 50,

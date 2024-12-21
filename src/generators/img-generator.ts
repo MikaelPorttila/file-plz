@@ -2,8 +2,8 @@ import { statSync } from "fs";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
+    // TODO: Remove file header bytes during calc
     const sampleSize = 10;
-    
 
     return new Promise(async (resolve, reject) => {
         const { Jimp, rgbaToInt } = await import('jimp');
@@ -72,11 +72,11 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 if (isLargerThanTargetSize) {
 
                     if (grow) {
+                        // Reset sampling
                         grow = false;
-                        samples = []; // reset sampling
+                        samples = []; 
                     }
 
-                    // default: remove two pixels
                     let pixelsOfWidthToRemove = 2;
 
                     const latestSamples = samples.slice(-(sampleSize));
@@ -91,13 +91,12 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                             totalBytes += cost;
                         }
 
-                        // Note: Should samplesSize by - 1 during the calc?
                         const avgBytesPerPixel = totalBytes / sampleSize; 
                         const numberOfPixelsNeededToBeRemoved = avgBytesPerPixel > 0 ? Math.floor((sizeDiffInBytes / avgBytesPerPixel) * 0.6) : 1;
                         pixelsOfWidthToRemove = numberOfPixelsNeededToBeRemoved;
                         console.log('Shrink', { diff, maxDelta, width, height, tries });
                     } else {
-                        console.log('Shrink - sampling');
+                        console.log('Shrink - sampling', { diff, maxDelta, width, height, tries });
                     }
 
                     if (width > height) {
@@ -120,7 +119,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
 
                 tries++;
             } catch (error) {
-                console.error('Error while generating bitmap');
+                console.error('Error while generating img');
                 reject();
                 return;
             }

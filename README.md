@@ -62,8 +62,8 @@ npx file-plz --t txt -s 10KB
 
 ## 🛠️ How It Works
 
-- **File Generation**: The program has a set of base instructions to create simple files which are merged with more complexed file types.
-- **Data**: The data within the files are random characters or generated noise.
+- **File Generation**: The program has a base set of instructions to create simple files, which are then merged with more complex file types to achieve the specific file size.
+- **File Content**: The data within the files is random characters or generated noise.
 
 ---
 
