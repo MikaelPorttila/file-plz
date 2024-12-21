@@ -28,9 +28,9 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
 
         let width = 40;
         let height = 10;
-        let reuseBuffer = false;
+        let crop = false;
         let tries = 0;
-        let sampler = new CircleBuffer<number>(10);    
+        let sampler = new CircleBuffer<number>(10);
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
         let grow = true;
 
@@ -38,18 +38,18 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
         if (parameters.sizeInBytes >= 1024 * 1024) {
             maxDelta = 0.00008;
         }
-       
+
         while (true) {
             try {
                 // Upscale or crop image
-                if (!reuseBuffer) {
+                if (crop) {
+                    img.crop({ x: 0, y: 0, w: width, h: height });
+                } else {
                     img.resize({ w: width, h: height });
                     // TODO: Opti - instead of resize, change bitmap size, keep old noise and draw new noise on empty areas.
                     applyNoise(img);
-                } else {
-                    img.crop({x: 0, y: 0, w: width, h: height});
                 }
-                
+
                 // Store file and grab metadata 
                 await img.write(parameters.fullFilePath as any);
                 const stats = statSync(parameters.fullFilePath);
@@ -67,18 +67,14 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 }
 
                 // Modify image size
-                const isLargerThanTargetSize = fileSizeInBytes > parameters.sizeInBytes;
-                reuseBuffer = isLargerThanTargetSize;
-
-                if (isLargerThanTargetSize) {
-                    sampler.add(fileSizeInBytes);
-                }
-                
-                if (isLargerThanTargetSize) {
+                crop = fileSizeInBytes > parameters.sizeInBytes;
+                if (crop) {
                     if (grow) {
                         // Reset sampling
                         grow = false;
                         sampler.reset();
+                    } else {
+                        sampler.add(fileSizeInBytes);
                     }
 
                     let pixelsToRemove = 2;
@@ -101,10 +97,9 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         height -= pixelsToRemove;
                     }
                 } else {
+                    grow = true;
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
                     const dimensionScaleFactor = Math.sqrt(factor);
-                    grow = true;
-                    
                     if (parameters.debug) {
                         console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
                     }
