@@ -50,12 +50,12 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     applyNoise(img);
                 }
 
-                // Store file and grab metadata 
+                // Store file and get file size.
                 await img.write(parameters.fullFilePath as any);
                 const stats = statSync(parameters.fullFilePath);
                 const fileSizeInBytes = stats.size;
 
-                // Control diffs
+                // Check how long the file size is from the target size.
                 const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
                 const diff = sizeDiffInBytes / parameters.sizeInBytes;
                 if (diff <= maxDelta) {
@@ -66,7 +66,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     return;
                 }
 
-                // Modify image size
+                // Figure out how the canvas must be cropped or enlarged to hit the target file size.
                 crop = fileSizeInBytes > parameters.sizeInBytes;
                 if (crop) {
                     if (grow) {
