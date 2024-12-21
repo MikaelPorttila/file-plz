@@ -7,16 +7,19 @@ import { KB } from "../const/file-sizes";
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
     return new Promise(async (resolve, reject) => {
         const { Jimp, rgbaToInt } = await import('jimp');
+        const seedrandom = await import('seedrandom');
+
         const applyNoise = (image: any): void => {
             const width = image.bitmap.width;
             const height = image.bitmap.height;
+            const rng = seedrandom.default('noise-ly');
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    const noiseIntensity = Math.random() * 100;
-                    const r = Math.floor(Math.random() * noiseIntensity);
-                    const g = Math.floor(Math.random() * noiseIntensity);
-                    const b = Math.floor(Math.random() * noiseIntensity);
+                    const noiseIntensity = rng() * 100;
+                    const r = Math.floor(rng() * noiseIntensity);
+                    const g = Math.floor(rng() * noiseIntensity);
+                    const b = Math.floor(rng() * noiseIntensity);
 
                     const color = rgbaToInt(r, g, b, 255);
                     image.setPixelColor(color, x, y);
@@ -59,7 +62,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 const diff = sizeDiffInBytes / parameters.sizeInBytes;
                 if (diff <= maxDelta) {
                     if (parameters.debug) {
-                        console.log('Completed', { diff, maxDelta, width, height, tries });
+                        console.log({ op: `Done (${tries})`, size: `${width}x${width}`, diff });
                     }
                     resolve();
                     return;
@@ -80,11 +83,11 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     if (sampler.isFilled()) {
                         pixelsToRemove = getAvgFactorForTargetSize(sampler.get(), sizeDiffInBytes);
                         if (parameters.debug) {
-                            console.log('Shrink', { diff, maxDelta, width, height, tries });
+                            console.log({ op: `Shrink (${tries})`, size: `${width}x${width}`, diff });
                         }
                     } else {
                         if (parameters.debug) {
-                            console.log('Shrink - sampling', { diff, maxDelta, width, height, tries });
+                            console.log({ op: `Shrink (${tries})`, size: `${width}x${width}`, diff }, '\t- Sampling');
                         }
                     }
 
@@ -99,7 +102,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
                     const dimensionScaleFactor = Math.sqrt(factor);
                     if (parameters.debug) {
-                        console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
+                        console.log({op: `Growth (${tries})`,  size: `${width}x${width}`, diff });
                     }
 
                     width = Math.max(width + 1, Math.floor(width * dimensionScaleFactor));
