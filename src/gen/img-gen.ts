@@ -4,9 +4,6 @@ import { getAvgFactorForTargetSize } from "../utilities/sampling";
 import { CircleBuffer } from "../utilities/circle-buffer";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
-    // TODO: Remove file header bytes during calc
-    const sampleSize = 10;
-
     return new Promise(async (resolve, reject) => {
         const { Jimp, rgbaToInt } = await import('jimp');
         const applyNoise = (image: any): void => {
@@ -26,16 +23,19 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
             }
         }
 
-        let width = 40;
-        let height = 10;
+        let height = 100;
+        let width = height * 4; 
         let crop = false;
         let tries = 0;
         let sampler = new CircleBuffer<number>(10);
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
         let grow = true;
 
+        let kb = 1024;
+        let mb = kb * 1024;
+
         let maxDelta = 0.0006;
-        if (parameters.sizeInBytes >= 1024 * 1024) {
+        if (parameters.sizeInBytes >= kb) {
             maxDelta = 0.00008;
         }
 
@@ -54,6 +54,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 await img.write(parameters.fullFilePath as any);
                 const stats = statSync(parameters.fullFilePath);
                 const fileSizeInBytes = stats.size;
+                // TODO: Remove file header bytes during calc
 
                 // Check how long the file size is from the target size.
                 const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
@@ -89,8 +90,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         }
                     }
 
-                    // Note: Crop from the side which impact the least number of pixels
-                    // to prevent major size jumps.
+                    // Crop from the side which impact the least number of pixels to prevent major size jumps.
                     if (width > height) {
                         width -= pixelsToRemove;
                     } else {
