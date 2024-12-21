@@ -68,7 +68,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 const stats = statSync(parameters.fullFilePath);
                 const fileSizeInBytes = stats.size;
                 // TODO: Remove file header bytes during calc.
-                // IDEA: Find a way to use the buffer size directly minimize number of disk writes
+                // IDEA: Find a way to use the buffer size directly to minimize number of disk writes
 
                 // Check how long the file size is from the target size.
                 const sizeDiffInBytes = Math.abs(fileSizeInBytes - parameters.sizeInBytes);
