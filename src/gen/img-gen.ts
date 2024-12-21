@@ -109,10 +109,8 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         console.log('Grow', { diff, maxDelta, width, height, tries, dimensionScaleFactor });
                     }
 
-                    const newWidth  = Math.floor(width * dimensionScaleFactor);
-                    const newHeight = Math.floor(height * dimensionScaleFactor);
-                    width = width === newWidth ? width + 1 : newWidth;   
-                    height = height === newHeight ? height + 1 : newHeight;
+                    width = Math.max(width + 1, Math.floor(width * dimensionScaleFactor));
+                    height = Math.max(height + 1, Math.floor(height * dimensionScaleFactor));
                 }
 
                 tries++;

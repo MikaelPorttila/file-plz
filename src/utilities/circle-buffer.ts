@@ -14,7 +14,7 @@ export class CircleBuffer<T> {
 
     add(value: T): void {
         this.buffer[this.index] = value;
-        let newIndex = (this.index + 1) % this.size;
+        const newIndex = (this.index + 1) % this.size;
         if (newIndex == 0) {
             this.filled = true;
         }
