@@ -25,24 +25,31 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
             }
         }
 
-        let height = 100;
-        let width = height * 20;
+        
+        
         let crop = false;
         let tries = 0;
         let sampler = new CircleBuffer<number>(5);
-        let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
+       
         let grow = true;
 
         let maxDelta = 0.0006;
+        let height = 100;
         if (parameters.sizeInBytes >= MB) {
             maxDelta = 0.00008;
         } else if (parameters.sizeInBytes > (10 * KB)) {
             maxDelta = 0.00008;
+            height = 1;
         } else if (parameters.sizeInBytes > KB) {
             maxDelta = 0.0015;
+            height = 1;
         } else if (parameters.sizeInBytes < KB) {
             maxDelta = 0.0015;
+            height = 1;
         }
+
+        let width = height * 20;
+        let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
 
         let overshootCount = 0;
         while (true) {
@@ -121,7 +128,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                         grow = true;
                         overshootCount++;
                         if (parameters.debug) {
-                            console.log({ op: 'Overshoot', size: `${width}x${height}`, diff, count: overshootCount });
+                            console.log({ op: 'Overshoot', size: `${width}x${height}`, count: overshootCount });
                         }
                     }
 
