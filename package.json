@@ -1,6 +1,6 @@
 {
   "name": "file-plz",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Maker of files",
   "main": "./src/main.ts",
   "scripts": {

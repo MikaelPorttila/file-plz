@@ -1,5 +1,7 @@
 import { statSync } from "fs";
 import type { FileGeneratorDetails } from "../types/file-gen-details";
+import { getAvgFactorForTargetSize } from "../utilities/sampling";
+import { CircleBuffer } from "../utilities/circle-buffer";
 
 export async function generateImageFile(parameters: FileGeneratorDetails): Promise<void> {
     // TODO: Remove file header bytes during calc
@@ -28,7 +30,7 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
         let height = 10;
         let reuseBuffer = false;
         let tries = 0;
-        let samples = [];    
+        let sampler = new CircleBuffer<number>(10);    
         let img = new Jimp({ height: height, width: width, color: 0xff0000ff });
         let grow = true;
 
@@ -39,9 +41,10 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
        
         while (true) {
             try {
-                // upscale or crop image
+                // Upscale or crop image
                 if (!reuseBuffer) {
                     img.resize({ w: width, h: height });
+                    // TODO: Opti - instead of resize, change bitmap size, keep old noise and draw new noise on empty areas.
                     applyNoise(img);
                 } else {
                     img.crop({x: 0, y: 0, w: width, h: height});
@@ -68,34 +71,19 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                 reuseBuffer = isLargerThanTargetSize;
 
                 if (isLargerThanTargetSize) {
-                    samples.push(fileSizeInBytes);
+                    sampler.add(fileSizeInBytes);
                 }
                 
                 if (isLargerThanTargetSize) {
-
                     if (grow) {
                         // Reset sampling
                         grow = false;
-                        samples = []; 
+                        sampler.reset();
                     }
 
-                    let pixelsOfWidthToRemove = 2;
-
-                    const latestSamples = samples.slice(-(sampleSize));
-                    if (latestSamples.length === sampleSize) {
-                        let zeroCostPixels = 0;
-                        let totalBytes = 0;
-                        for (let index = 1; index < latestSamples.length; index++) {
-                            const cost = latestSamples[index - 1] - latestSamples[index];
-                            if (cost === 0) {
-                                zeroCostPixels++;
-                            }
-                            totalBytes += cost;
-                        }
-
-                        const avgBytesPerPixel = totalBytes / sampleSize; 
-                        const numberOfPixelsNeededToBeRemoved = avgBytesPerPixel > 0 ? Math.floor((sizeDiffInBytes / avgBytesPerPixel) * 0.6) : 1;
-                        pixelsOfWidthToRemove = numberOfPixelsNeededToBeRemoved;
+                    let pixelsToRemove = 2;
+                    if (sampler.isFilled()) {
+                        pixelsToRemove = getAvgFactorForTargetSize(sampler.get(), sizeDiffInBytes);
                         if (parameters.debug) {
                             console.log('Shrink', { diff, maxDelta, width, height, tries });
                         }
@@ -108,9 +96,9 @@ export async function generateImageFile(parameters: FileGeneratorDetails): Promi
                     // Note: Crop from the side which impact the least number of pixels
                     // to prevent major size jumps.
                     if (width > height) {
-                        width -= pixelsOfWidthToRemove;
+                        width -= pixelsToRemove;
                     } else {
-                        height -= pixelsOfWidthToRemove;
+                        height -= pixelsToRemove;
                     }
                 } else {
                     const factor = parameters.sizeInBytes / fileSizeInBytes;
